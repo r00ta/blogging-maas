@@ -1,0 +1,4 @@
+theme = 'hugo-theme-relearn'
+baseURL = 'https://maas.r00ta.com/'
+languageCode = 'en-us'
+title = "r00ta <3 MAAS"
