@@ -1,7 +1,7 @@
 +++
-title = "3.6"
+title = "3.6 (upcoming)"
 type = "chapter"
-weight = 1
+weight = 98
 +++
 
 This is a new chapter.

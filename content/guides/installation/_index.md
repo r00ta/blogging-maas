@@ -1,7 +1,7 @@
 +++
-title = "3.5 (latest)"
+title = "Installation"
 type = "chapter"
-weight = 99
+weight = 2
 +++
 
 This is a new chapter.

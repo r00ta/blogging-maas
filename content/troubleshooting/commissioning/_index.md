@@ -1,7 +1,7 @@
 +++
-title = "3.5 (latest)"
+title = "Commissioning"
 type = "chapter"
-weight = 99
+weight = 1
 +++
 
 This is a new chapter.
