@@ -2,6 +2,7 @@ theme = 'hugo-theme-relearn'
 baseURL = 'https://maas.r00ta.com/'
 languageCode = 'en-us'
 title = "r00ta <3 MAAS"
+googleAnalytics = 'G-EW6Z2F7R3J'
 
 [params]
   collapsibleMenu = true
@@ -60,10 +61,6 @@ title = "r00ta <3 MAAS"
   custom_css = ["css/foo.css", "css/bar.css"]
   # Change the title separator. Default to "::".
   titleSeparator = "-"
-
-[services]
-  [services.googleAnalytics]
-    id = 'G-EW6Z2F7R3J'
 
 [outputs]
 home = [ "HTML", "RSS", "JSON"]
