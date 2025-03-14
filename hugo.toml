@@ -61,6 +61,9 @@ title = "r00ta <3 MAAS"
   # Change the title separator. Default to "::".
   titleSeparator = "-"
 
+[services]
+  [services.googleAnalytics]
+    id = 'G-EW6Z2F7R3J'
 
 [outputs]
 home = [ "HTML", "RSS", "JSON"]
