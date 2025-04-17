@@ -23,6 +23,12 @@ echo "🚀 Installing Vault..."
 sudo snap install vault
 sudo snap start vault.vaultd
 
+echo "⏳ Waiting for Vault to be ready..."
+until curl -s "$VAULT_ADDR/v1/sys/health" | grep -q '"initialized":false'; do
+  sleep 2
+done
+echo "✅ Vault is ready to initialize."
+
 echo "🔐 Setting up environment variables..."
 export VAULT_SKIP_VERIFY=true
 export VAULT_ADDR=$VAULT_ADDR
