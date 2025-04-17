@@ -6,95 +6,72 @@ weight = 4
 
 ## How to integrate Vault with MAAS
 
-### Install Vault
+Use this magic script!
 
-```
+```bash
+#!/bin/bash
+
+set -e
+
+# CONFIGURATION
+VAULT_ADDR="http://127.0.0.1:8200"
+POLICY_NAME="maas"
+SECRET_PATH="maas"
+TOKEN_TTL="5m"
+
+echo "🚀 Installing Vault..."
 sudo snap install vault
 sudo snap start vault.vaultd
-```
 
-### Setup Vault
-
-Setup a couple of env variables
-
-```
+echo "🔐 Setting up environment variables..."
 export VAULT_SKIP_VERIFY=true
-export VAULT_ADDR=http://127.0.0.1:8200
-```
+export VAULT_ADDR=$VAULT_ADDR
 
-Initialize Vault
+echo "🔑 Initializing Vault..."
+INIT_OUTPUT=$(vault operator init -key-shares=1 -key-threshold=1 -format=json)
+UNSEAL_KEY=$(echo "$INIT_OUTPUT" | jq -r '.unseal_keys_b64[0]')
+ROOT_TOKEN=$(echo "$INIT_OUTPUT" | jq -r '.root_token')
 
-```
-vault operator init -key-shares=1 -key-threshold=1
-```
+echo "📝 Saving unseal key and root token..."
+echo "Unseal Key: $UNSEAL_KEY"
+echo "Root Token: $ROOT_TOKEN"
 
-and write down the root token and the unseal keys.
+echo "🔓 Unsealing Vault..."
+vault operator unseal "$UNSEAL_KEY"
 
-Now unseal the vault with the unseal keys.
+echo "🔐 Logging into Vault..."
+vault login "$ROOT_TOKEN"
 
-```
-vault operator unseal
-```
-
-Now login with the root token
-
-```
-vault login
-```
-
-### Setup the approle
-
-Enable the approle
-
-```
+echo "🔐 Enabling AppRole and secret engine..."
 vault auth enable approle
-```
+vault secrets enable -path=$SECRET_PATH kv-v2
 
-enable the `maas` path
-
-```
-vault secrets enable -path maas kv-v2
-```
-
-Now write down the policy 
-
-```
-cat <<EOF > maas-policy.hcl
-path "maas/metadata/secrets/" {
-	capabilities = ["list"]
+echo "📜 Creating policy..."
+cat <<EOF > ${POLICY_NAME}-policy.hcl
+path "${SECRET_PATH}/metadata/secrets/" {
+  capabilities = ["list"]
 }
 
-path "maas/metadata/secrets/*" {
-	capabilities = ["read", "update", "delete", "list"]
+path "${SECRET_PATH}/metadata/secrets/*" {
+  capabilities = ["read", "update", "delete", "list"]
 }
 
-path "maas/data/secrets/*" {
-	capabilities = ["read", "create", "update", "delete"]
+path "${SECRET_PATH}/data/secrets/*" {
+  capabilities = ["read", "create", "update", "delete"]
 }
 EOF
-```
 
-and create the policy
+vault policy write $POLICY_NAME ${POLICY_NAME}-policy.hcl
 
-```
-vault policy write maas maas-policy.hcl
-vault write auth/approle/role/maas policies=maas token_ttl=5m
-```
+echo "🔧 Creating AppRole..."
+vault write auth/approle/role/$POLICY_NAME policies=$POLICY_NAME token_ttl=$TOKEN_TTL
 
-Extract the role id
+ROLE_ID=$(vault read -format=json auth/approle/role/$POLICY_NAME/role-id | jq -r '.data.role_id')
+WRAPPED_SECRET=$(vault write -format=json -wrap-ttl=$TOKEN_TTL auth/approle/role/$POLICY_NAME/secret-id role_id="$ROLE_ID")
+SECRET_ID=$(echo "$WRAPPED_SECRET" | jq -r '.wrap_info.token')
 
-```
-vault read auth/approle/role/maas/role-id
-```
-
-and finally 
-
-```
-vault write -wrap-ttl=5m auth/approle/role/maas/secret-id role_id=<the role id>
-```
-
-### Integrate with MAAS
-
-```
-sudo maas config-vault configure http://<the IP where you installed vault>:8200 <the role id> <the secret token> secrets --mount maas
+echo "🤝 Integrating with MAAS..."
+echo "Run the following command on your MAAS host:"
+echo ""
+echo "sudo maas config-vault configure http://<Vault-IP>:8200 $ROLE_ID $SECRET_ID secrets --mount $SECRET_PATH"
 ```
