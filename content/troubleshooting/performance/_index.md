@@ -8,7 +8,7 @@ title = 'Performances'
 
 The `maasserver_events` table is a table that stores all the events that happen in MAAS. It's a good idea to clean it regularly as it can grow quite large and it does not have any retention policy. 
 
-My suggestion would be to keep only the latest 20% of events for every machine. You can do this with the following query:
+My suggestion would be to keep only the latest 20% of events for every machine (see [here](https://bugs.launchpad.net/maas/+bug/2044895/comments/5) for the reference). You can do this with the following query:
 
 ```sql
 WITH node_records AS (
