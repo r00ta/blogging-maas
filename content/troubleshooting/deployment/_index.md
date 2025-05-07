@@ -1,7 +1,7 @@
 +++
 title = "Deployment"
 type = "chapter"
-weight = 1
+weight = 2
 +++
 
 ## What to do when your machine is not being deployed. 

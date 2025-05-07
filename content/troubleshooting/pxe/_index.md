@@ -2,7 +2,7 @@
 date = '2025-03-13T23:27:20+01:00'
 type = "chapter"
 title = 'PXE'
-weight = 2
+weight = 3
 +++
 
 ## What to do when your machine is not PXE booting
