@@ -1,49 +1,55 @@
+
 +++
-title = "Testing architectures"
+title = "System tests"
 type = "chapter"
-weight = 5
+weight = 3
 +++
 
-How to test different architectures in MAAS without hardware! For example, you can test arm64 and others.
+Here's how to execute system tests locally.
 
-## Setup MAAS
+## Deploy a bare metal machine on your homelab
 
-As usual, install the MAAS dev environment with 2 networks
+You know how to do it. Right? 
 
-```
-$ lxc network list
-
-+-----------------+----------+---------+----------------+---------------------------+-------------+---------+---------+
-|      NAME       |   TYPE   | MANAGED |      IPV4      |           IPV6            | DESCRIPTION | USED BY |  STATE  |
-+-----------------+----------+---------+----------------+---------------------------+-------------+---------+---------+
-| net-lab         | bridge   | YES     | 10.0.1.1/24    | none                      |             | 26      | CREATED |
-+-----------------+----------+---------+----------------+---------------------------+-------------+---------+---------+
-| net-test        | bridge   | YES     | 10.0.2.1/24    | none                      |             | 26      | CREATED |
-+-----------------+----------+---------+----------------+---------------------------+-------------+---------+---------+
-
-where `net-test` is the network where the machine will be deployed. LXD DHCP is disabled on this network, because it will be managed by MAAS. Of course, download arm64 images in MAAS.
-
-## Install qemu
+## Install LXD and prepare the environment
 
 ```
-sudo apt install qemu-system-arm
+sudo apt-get update
+sudo apt-get install tox
+
+snap install yq
+snap install lxd
+lxd init --auto
+```
+
+## Execute the tests (if you have to re-execute the tests, repeat from here)
+
+```
+lxc delete maas-system-build --force || true; lxc delete maas-system-maas --force || true; lxc delete maas-client --force || true;
+lxc list; pgrep -a qemu || true; rm -rf system-tests; git clone https://git.launchpad.net/~maas-committers/maas-ci/+git/system-tests --branch master --depth 10 system-tests; cd system-tests && git show --no-patch;
+
+cd lxd_configs 
+./configure_lxd.sh
+./configure_lxd_key.sh
+./generate_lxd_base_config.py > ../config.base.yaml 
+cd ../
+```
+
+## Generate the config for the tests
+
+```
+export MAAS_REPO=https://git.launchpad.net/~r00ta/maas
+export MAAS_BRANCH=fix-vault-integration
+tox -e generate_config -- --hw-sync --deb --git-repo $MAAS_REPO  --git-branch $MAAS_BRANCH --ppa ppa:maas-committers/latest-deps --only-vms --vault --containers-image=ubuntu:24.04 --image-stream-url=http://images.maas.io/ephemeral-v3/stable/ config.base.yaml config.yaml image_mapping.yaml
 ```
 
 
-## Create a disk and start the machine
+## Run the tests
 
 ```
-qemu-img create -f qcow2 disk.qcow2 20G
-
-sudo qemu-system-aarch64 \
-  -machine virt \
-  -cpu cortex-a57 \
-  -m 4096 \
-  -bios /usr/share/qemu-efi-aarch64/QEMU_EFI.fd \
-  -boot order=n \
-  -drive file=./disk.qcow2,format=qcow2 \
-  -netdev bridge,id=net0,br=net-test \
-  -device virtio-net-device,netdev=net0,mac=52:54:00:00:00:02
-```
-
-Enjoy :D
+tox -e cog 
+tox run -e env_builder -- --log-cli-level info | tee env_builder.out 
+tox run -e general_tests -- --log-cli-level info 
+TEST_ENVS=$(cat config.yaml | yq '.machines.vms.instances | keys | join(",")') 
+tox run-parallel --parallel-no-spinner -p all -e ${TEST_ENVS} -- --log-cli-level info 
+ ```
