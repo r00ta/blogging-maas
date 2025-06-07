@@ -28,3 +28,28 @@ qemu-system-x86_64 \
 ```
 
 Just to test a valid scenario, just download the kernel and the initrd from images.maas.io and try them. Then you can try your ones!
+
+## Create a custom initrd
+
+```bash
+cd /tmp
+mkdir initrd
+cd initrd/
+mkdir -p bin sbin etc proc sys usr/bin usr/sbin dev
+cp /bin/busybox bin/
+cd bin
+for cmd in sh mount echo; do   ln -s busybox $cmd; done
+cd ..
+cat > init << 'EOF'
+#!/bin/sh
+mount -t proc none /proc
+mount -t sysfs none /sys
+echo "Hello, world!"
+exec sh
+EOF
+
+chmod +x init
+sudo mknod dev/console c 5 1
+sudo mknod dev/null c 1 3
+find . | cpio -H newc -o | gzip > ../initrd.img
+```
