@@ -25,6 +25,12 @@ The image that you are trying to deploy *must* be available in MAAS. Before 3.4,
 
 If you are using a HP Gen10 server with a `BCM5719 Gigabit Ethernet PCIe Adapter` with the version `5719-v1.46 NCSI v1.5.1.0`, then you will not be able to pxe boot with MAAS. The symptom is that after getting the IP address from the MAAS DHCP server, you will be sent to the `initramfs` prompt. Please upgrade your firmware. 
 
+### Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(0,0)
+
+please ensure you have enabled VirtIO as boot device as per screenshot below.
+
+![virtio](/static/virsh_kernel_panic.png)
+
 ### Check your cables!
 
 Again, self-explanatory.
