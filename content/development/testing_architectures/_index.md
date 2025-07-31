@@ -12,6 +12,7 @@ As usual, install the MAAS dev environment with 2 networks
 
 ```
 $ lxc network list
+```
 
 +-----------------+----------+---------+----------------+---------------------------+-------------+---------+---------+
 |      NAME       |   TYPE   | MANAGED |      IPV4      |           IPV6            | DESCRIPTION | USED BY |  STATE  |
