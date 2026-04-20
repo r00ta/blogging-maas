@@ -59,7 +59,7 @@ sudo qemu-system-x86_64 -enable-kvm -m 256M \
 ```
 
 {{% notice info %}}
-`sudo` is required to attach to the bridge interface. The MAC address `52:54:00:ab:cd:ef` is arbitrary — you can change it as needed.
+`sudo` is required because attaching to a bridge interface involves manipulating host network interfaces, which is a privileged operation. The MAC address `52:54:00:ab:cd:ef` is arbitrary — you can change it as needed.
 {{% /notice %}}
 
 ## Configure the IP address
@@ -142,5 +142,5 @@ curl -u admin:yourpassword http://10.0.0.100/rest/system/resource
 ```
 
 {{% notice tip %}}
-The REST API maps directly to the RouterOS CLI. Any command path like `/ip/firewall/filter` becomes the URL `http://<router-ip>/rest/ip/firewall/filter`. Use `GET` to read, `PUT` to create, `PATCH` to update, and `DELETE` to remove entries.
+The REST API maps directly to the RouterOS CLI. Any command path like `/ip/firewall/filter` becomes the URL `http://<router-ip>/rest/ip/firewall/filter`. Use `GET` to read, `PUT` to create/update, `PATCH` to modify specific properties, `POST` for commands, and `DELETE` to remove entries.
 {{% /notice %}}
